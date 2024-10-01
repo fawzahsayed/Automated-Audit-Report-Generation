@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Chatbot</title>
+</head>
+<body>
+    <header>
+        <h1>Automated Audit Report Generation</h1>
+    </header>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+            <div class="bot-message">Hello! I am here to help you create an audit report.</div>
+        </div>
+        <input type="text" id="user-input" placeholder="Type your message..." />
+        <button id="send-button">Send</button>
+    </div>
+    <script>
+        document.getElementById('send-button').addEventListener('click', function() {
+            const userMessage = document.getElementById('user-input').value;
+            const chatBox = document.getElementById('chat-box');
+
+            if (userMessage) {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-message';
+                userDiv.innerText = userMessage;
+                chatBox.appendChild(userDiv);
+
+                document.getElementById('user-input').value = '';
+
+                fetch('/get_response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(userMessage)}`,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const botDiv = document.createElement('div');
+                    botDiv.className = 'bot-message';
+                    botDiv.innerHTML = data.response;
+                    chatBox.appendChild(botDiv);
+
+                    if (data.pdf_file) {
+                        const pdfLink = document.createElement('a');
+                        pdfLink.href = data.pdf_file;
+                        pdfLink.innerText = 'Download Audit Report PDF';
+                        pdfLink.download = 'audit_report.pdf';
+                        chatBox.appendChild(pdfLink);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
